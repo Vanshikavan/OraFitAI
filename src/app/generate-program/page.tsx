@@ -2,10 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-// import { vapi } from "@/lib/vapi";
+import { vapi, startVapiCall, stopVapiCall } from "@/lib/vapi";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 
 const GenerateProgramPage = () => {
   const [callActive, setCallActive] = useState(false);
@@ -13,9 +15,12 @@ const GenerateProgramPage = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [callEnded, setCallEnded] = useState(false);
+  const [programCreated, setProgramCreated] = useState(false);
+  const [microphoneError, setMicrophoneError] = useState<string | null>(null);
 
   const { user } = useUser();
   const router = useRouter();
+  const createPlanFromVapiCall = useMutation(api.plans.createPlanFromVapiCall);
 
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -62,88 +67,187 @@ const GenerateProgramPage = () => {
   }, [callEnded, router]);
 
   // setup event listeners for vapi
-  // useEffect(() => {
-  //   const handleCallStart = () => {
-  //     console.log("Call started");
-  //     setConnecting(false);
-  //     setCallActive(true);
-  //     setCallEnded(false);
-  //   };
+  useEffect(() => {
+    const handleCallStart = () => {
+      console.log("Call started");
+      setConnecting(false);
+      setCallActive(true);
+      setCallEnded(false);
+    };
 
-  //   const handleCallEnd = () => {
-  //     console.log("Call ended");
-  //     setCallActive(false);
-  //     setConnecting(false);
-  //     setIsSpeaking(false);
-  //     setCallEnded(true);
-  //   };
+    const handleCallEnd = async () => {
+      console.log("Call ended");
+      setCallActive(false);
+      setConnecting(false);
+      setIsSpeaking(false);
+      setCallEnded(true);
+      
+      // Create a sample program after the call ends
+      // In a real implementation, this data would come from the Vapi call
+      if (user?.id && !programCreated) {
+        try {
+          await createPlanFromVapiCall({
+            userId: user.id,
+            callData: {
+              userInfo: {
+                name: user.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : "User",
+                age: 25,
+                height: "5'8\"",
+                weight: "150 lbs",
+                fitnessGoal: "Weight Loss",
+                fitnessLevel: "Beginner",
+                workoutDays: 3,
+                equipmentAccess: "Home gym",
+                injuries: "None",
+                dietaryRestrictions: "None",
+              },
+              workoutPlan: {
+                schedule: ["Monday", "Wednesday", "Friday"],
+                exercises: [
+                  {
+                    day: "Monday",
+                    routines: [
+                      {
+                        name: "Full Body Strength",
+                        sets: 3,
+                        reps: 12,
+                        description: "Beginner-friendly full body workout",
+                        exercises: ["Squats", "Push-ups", "Plank", "Lunges"]
+                      }
+                    ]
+                  },
+                  {
+                    day: "Wednesday",
+                    routines: [
+                      {
+                        name: "Cardio & Core",
+                        sets: 3,
+                        reps: 15,
+                        description: "Cardio-focused workout with core strengthening",
+                        exercises: ["Jumping jacks", "Mountain climbers", "Crunches", "High knees"]
+                      }
+                    ]
+                  },
+                  {
+                    day: "Friday",
+                    routines: [
+                      {
+                        name: "Upper Body & Flexibility",
+                        sets: 2,
+                        reps: 10,
+                        description: "Upper body strength with flexibility work",
+                        exercises: ["Arm circles", "Tricep dips", "Shoulder stretches", "Cat-cow stretch"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              dietPlan: {
+                dailyCalories: 1800,
+                meals: [
+                  {
+                    name: "Breakfast",
+                    foods: ["Oatmeal with berries", "Greek yogurt", "Green tea"]
+                  },
+                  {
+                    name: "Lunch",
+                    foods: ["Grilled chicken salad", "Quinoa", "Mixed vegetables"]
+                  },
+                  {
+                    name: "Dinner",
+                    foods: ["Baked salmon", "Sweet potato", "Steamed broccoli"]
+                  },
+                  {
+                    name: "Snacks",
+                    foods: ["Apple with almond butter", "Mixed nuts"]
+                  }
+                ]
+              }
+            }
+          });
+          setProgramCreated(true);
+        } catch (error) {
+          console.error("Failed to create program:", error);
+        }
+      }
+    };
 
-  //   const handleSpeechStart = () => {
-  //     console.log("AI started Speaking");
-  //     setIsSpeaking(true);
-  //   };
+    const handleSpeechStart = () => {
+      console.log("AI started Speaking");
+      setIsSpeaking(true);
+    };
 
-  //   const handleSpeechEnd = () => {
-  //     console.log("AI stopped Speaking");
-  //     setIsSpeaking(false);
-  //   };
-  //   const handleMessage = (message: any) => {
-  //     if (message.type === "transcript" && message.transcriptType === "final") {
-  //       const newMessage = { content: message.transcript, role: message.role };
-  //       setMessages((prev) => [...prev, newMessage]);
-  //     }
-  //   };
+    const handleSpeechEnd = () => {
+      console.log("AI stopped Speaking");
+      setIsSpeaking(false);
+    };
+    const handleMessage = (message: any) => {
+      if (message.type === "transcript" && message.transcriptType === "final") {
+        const newMessage = { content: message.transcript, role: message.role };
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    };
 
-  //   const handleError = (error: any) => {
-  //     console.log("Vapi Error", error);
-  //     setConnecting(false);
-  //     setCallActive(false);
-  //   };
+    const handleError = (error: any) => {
+      console.log("Vapi Error", error);
+      setConnecting(false);
+      setCallActive(false);
+    };
 
-  //   vapi
-  //     .on("call-start", handleCallStart)
-  //     .on("call-end", handleCallEnd)
-  //     .on("speech-start", handleSpeechStart)
-  //     .on("speech-end", handleSpeechEnd)
-  //     .on("message", handleMessage)
-  //     .on("error", handleError);
+    vapi
+      .on("call-start", handleCallStart)
+      .on("call-end", handleCallEnd)
+      .on("speech-start", handleSpeechStart)
+      .on("speech-end", handleSpeechEnd)
+      .on("message", handleMessage)
+      .on("error", handleError);
 
-  //   // cleanup event listeners on unmount
-  //   return () => {
-  //     vapi
-  //       .off("call-start", handleCallStart)
-  //       .off("call-end", handleCallEnd)
-  //       .off("speech-start", handleSpeechStart)
-  //       .off("speech-end", handleSpeechEnd)
-  //       .off("message", handleMessage)
-  //       .off("error", handleError);
-  //   };
-  // }, []);
+    return () => {
+      vapi
+        .off("call-start", handleCallStart)
+        .off("call-end", handleCallEnd)
+        .off("speech-start", handleSpeechStart)
+        .off("speech-end", handleSpeechEnd)
+        .off("message", handleMessage)
+        .off("error", handleError);
+    };
+  }, []);
 
-  // const toggleCall = async () => {
-  //   if (callActive) vapi.stop();
-  //   else {
-  //     try {
-  //       setConnecting(true);
-  //       setMessages([]);
-  //       setCallEnded(false);
+  const toggleCall = async () => {
+    if (callActive) {
+      stopVapiCall();
+    } else {
+      try {
+        setConnecting(true);
+        setMessages([]);
+        setCallEnded(false);
 
-  //       const fullName = user?.firstName
-  //         ? `${user.firstName} ${user.lastName || ""}`.trim()
-  //         : "There";
+        const fullName = user?.firstName
+          ? `${user.firstName} ${user.lastName || ""}`.trim()
+          : "There";
 
-  //       await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-  //         variableValues: {
-  //           full_name: fullName,
-  //           user_id: user?.id,
-  //         },
-  //       });
-  //     } catch (error) {
-  //       console.log("Failed to start call", error);
-  //       setConnecting(false);
-  //     }
-  //   }
-  // };
+        const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID;
+        if (!workflowId) {
+          console.warn("Missing NEXT_PUBLIC_VAPI_WORKFLOW_ID");
+          setConnecting(false);
+          return;
+        }
+
+        await startVapiCall(workflowId, {
+          full_name: fullName,
+          user_id: user?.id,
+        });
+      } catch (error) {
+        console.log("Failed to start call", error);
+        setConnecting(false);
+        if (error instanceof Error) {
+          setMicrophoneError(error.message);
+        } else {
+          setMicrophoneError("Failed to start voice call. Please check your microphone and try again.");
+        }
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen text-foreground overflow-hidden  pb-6 pt-24">
@@ -271,7 +375,7 @@ const GenerateProgramPage = () => {
               {messages.map((msg, index) => (
                 <div key={index} className="message-item animate-fadeIn">
                   <div className="font-semibold text-xs text-muted-foreground mb-1">
-                    {msg.role === "assistant" ? "CodeFlex AI" : "You"}:
+                    {msg.role === "assistant" ? "OraFit AI" : "You"}:
                   </div>
                   <p className="text-foreground">{msg.content}</p>
                 </div>
@@ -289,8 +393,25 @@ const GenerateProgramPage = () => {
           </div>
         )}
 
+        {/* MICROPHONE ERROR */}
+        {microphoneError && (
+          <div className="w-full max-w-md mx-auto mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="flex items-center gap-2 text-red-500 mb-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="font-semibold">Microphone Issue</span>
+            </div>
+            <p className="text-sm text-red-400">{microphoneError}</p>
+            <button
+              onClick={() => setMicrophoneError(null)}
+              className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* CALL CONTROLS */}
-        {/* <div className="w-full flex justify-center gap-4">
+        <div className="w-full flex justify-center gap-4">
           <Button
             className={`w-40 text-xl rounded-3xl ${
               callActive
@@ -316,7 +437,7 @@ const GenerateProgramPage = () => {
                     : "Start Call"}
             </span>
           </Button>
-        </div> */}
+        </div>
       </div>
     </div>
   );
