@@ -181,6 +181,15 @@
   }
 }
 
+@layer utilities {
+  .bg-cyber-terminal-bg {
+    background-color: var(--cyber-terminal-bg);
+  }
+  .bg-cyber-black {
+    background-color: var(--cyber-black);
+  }
+}
+
 @keyframes scanline {
   0% {
     background-position: 0 0;

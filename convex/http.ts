@@ -47,19 +47,29 @@ http.route({
     if (eventType === "user.created") {
       const { id, first_name, last_name, image_url, email_addresses } = evt.data;
 
-      const email = email_addresses[0].email_address;
+      // Validate email_addresses array
+      if (!email_addresses || !Array.isArray(email_addresses) || email_addresses.length === 0) {
+        console.error("Error creating user: No email addresses found");
+        return new Response("No email addresses found", { status: 400 });
+      }
 
-      const name = `${first_name || ""} ${last_name || ""}`.trim();
+      const email = email_addresses[0]?.email_address;
+      if (!email) {
+        console.error("Error creating user: Invalid email address");
+        return new Response("Invalid email address", { status: 400 });
+      }
+
+      const name = `${first_name || ""} ${last_name || ""}`.trim() || email.split("@")[0] || "User";
 
       try {
         await ctx.runMutation(api.users.syncUser, {
           email,
           name,
-          image: image_url,
+          image: image_url || undefined,
           clerkId: id,
         });
       } catch (error) {
-        console.log("Error creating user:", error);
+        console.error("Error creating user:", error);
         return new Response("Error creating user", { status: 500 });
       }
     }
@@ -67,18 +77,29 @@ http.route({
     if (eventType === "user.updated") {
       const { id, email_addresses, first_name, last_name, image_url } = evt.data;
 
-      const email = email_addresses[0].email_address;
-      const name = `${first_name || ""} ${last_name || ""}`.trim();
+      // Validate email_addresses array
+      if (!email_addresses || !Array.isArray(email_addresses) || email_addresses.length === 0) {
+        console.error("Error updating user: No email addresses found");
+        return new Response("No email addresses found", { status: 400 });
+      }
+
+      const email = email_addresses[0]?.email_address;
+      if (!email) {
+        console.error("Error updating user: Invalid email address");
+        return new Response("Invalid email address", { status: 400 });
+      }
+
+      const name = `${first_name || ""} ${last_name || ""}`.trim() || email.split("@")[0] || "User";
 
       try {
         await ctx.runMutation(api.users.updateUser, {
           clerkId: id,
           email,
           name,
-          image: image_url,
+          image: image_url || undefined,
         });
       } catch (error) {
-        console.log("Error updating user:", error);
+        console.error("Error updating user:", error);
         return new Response("Error updating user", { status: 500 });
       }
     }

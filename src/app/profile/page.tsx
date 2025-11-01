@@ -21,7 +21,10 @@ const ProfilePage = () => {
   const { user } = useUser();
   const userId = user?.id as string;
 
-  const allPlans = useQuery(api.plans.getUserPlans, { userId });
+  const allPlans = useQuery(
+    api.plans.getUserPlans,
+    userId ? { userId } : "skip"
+  );
   const [selectedPlanId, setSelectedPlanId] = useState<null | string>(null);
 
   const activePlan = allPlans?.find((plan) => plan.isActive);
@@ -105,15 +108,18 @@ const ProfilePage = () => {
 
                 <TabsContent value="workout">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      <CalendarIcon className="h-4 w-4 text-primary" />
-                      <span className="font-mono text-sm text-muted-foreground">
-                        SCHEDULE: {currentPlan.workoutPlan.schedule.join(", ")}
-                      </span>
-                    </div>
+                    {currentPlan.workoutPlan.schedule && currentPlan.workoutPlan.schedule.length > 0 && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <span className="font-mono text-sm text-muted-foreground">
+                          SCHEDULE: {currentPlan.workoutPlan.schedule.join(", ")}
+                        </span>
+                      </div>
+                    )}
 
                     <Accordion type="multiple" className="space-y-4">
-                      {currentPlan.workoutPlan.exercises.map((exerciseDay, index) => (
+                      {currentPlan.workoutPlan.exercises && currentPlan.workoutPlan.exercises.length > 0 ? (
+                        currentPlan.workoutPlan.exercises.map((exerciseDay, index) => (
                         <AccordionItem
                           key={index}
                           value={exerciseDay.day}
@@ -140,12 +146,21 @@ const ProfilePage = () => {
                                       {routine.name}
                                     </h4>
                                     <div className="flex items-center gap-2">
-                                      <div className="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-mono">
-                                        {routine.sets} SETS
-                                      </div>
-                                      <div className="px-2 py-1 rounded bg-secondary/20 text-secondary text-xs font-mono">
-                                        {routine.reps} REPS
-                                      </div>
+                                      {routine.sets && (
+                                        <div className="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-mono">
+                                          {routine.sets} SETS
+                                        </div>
+                                      )}
+                                      {routine.reps && (
+                                        <div className="px-2 py-1 rounded bg-secondary/20 text-secondary text-xs font-mono">
+                                          {routine.reps} REPS
+                                        </div>
+                                      )}
+                                      {routine.duration && (
+                                        <div className="px-2 py-1 rounded bg-primary/20 text-primary text-xs font-mono">
+                                          {routine.duration}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   {routine.description && (
@@ -158,7 +173,12 @@ const ProfilePage = () => {
                             </div>
                           </AccordionContent>
                         </AccordionItem>
-                      ))}
+                      ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No workout exercises available yet.
+                        </div>
+                      )}
                     </Accordion>
                   </div>
                 </TabsContent>
@@ -177,7 +197,8 @@ const ProfilePage = () => {
                     <div className="h-px w-full bg-border my-4"></div>
 
                     <div className="space-y-4">
-                      {currentPlan.dietPlan.meals.map((meal, index) => (
+                      {currentPlan.dietPlan.meals && currentPlan.dietPlan.meals.length > 0 ? (
+                        currentPlan.dietPlan.meals.map((meal, index) => (
                         <div
                           key={index}
                           className="border border-border rounded-lg overflow-hidden p-4"
@@ -200,7 +221,12 @@ const ProfilePage = () => {
                             ))}
                           </ul>
                         </div>
-                      ))}
+                      ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No meal plan available yet.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TabsContent>

@@ -1,18 +1,25 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChevronRight,
+  ChevronDown,
   Dumbbell,
   Sparkles,
   Users,
   Clock,
   AppleIcon,
   ShieldIcon,
+  Calendar,
 } from "lucide-react";
 import { USER_PROGRAMS } from "@/constants";
 
 const UserPrograms = () => {
+  const [expandedProgramId, setExpandedProgramId] = useState<number | null>(null);
+
   return (
     <div className="w-full pb-24 pt-16 relative">
       <div className="container mx-auto max-w-6xl px-4">
@@ -48,7 +55,7 @@ const UserPrograms = () => {
               </div>
               <div className="w-px h-12 bg-border"></div>
               <div className="flex flex-col items-center">
-                <p className="text-3xl text-primary">3min</p>
+                <p className="text-3xl text-primary">2min</p>
                 <p className="text-sm text-muted-foreground uppercase tracking-wide mt-1">
                   CREATION TIME
                 </p>
@@ -94,7 +101,7 @@ const UserPrograms = () => {
                   <div>
                     <CardTitle className="text-xl text-foreground">
                       {program.first_name}
-                      <span className="text-primary">.exe</span>
+                      
                     </CardTitle>
                     <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                       <Users className="h-4 w-4" />
@@ -172,13 +179,139 @@ const UserPrograms = () => {
                 </div>
               </CardContent>
 
-              <CardFooter className="px-5 py-4 border-t border-border">
-                <Link href={`/programs/${program.id}`} className="w-full">
-                  <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    View Program Details
+              <CardFooter className="px-5 py-4 border-t border-border flex-col gap-4">
+                <Button
+                  onClick={() =>
+                    setExpandedProgramId(
+                      expandedProgramId === program.id ? null : program.id
+                    )
+                  }
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {expandedProgramId === program.id ? "Show Less" : "View Program Details"}
+                  {expandedProgramId === program.id ? (
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  ) : (
                     <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
+                  )}
+                </Button>
+
+                {/* Expanded Content */}
+                {expandedProgramId === program.id && (
+                  <div className="w-full space-y-6 pt-4 border-t border-border">
+                    {/* Workout Plan Details */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Dumbbell className="h-5 w-5 text-primary" />
+                        <h4 className="text-lg font-bold text-foreground">
+                          {program.workout_plan.title}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {program.workout_plan.description}
+                      </p>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4 text-primary" />
+                          <span className="font-mono">Weekly Schedule:</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {program.workout_plan.weekly_schedule.map((day, index) => (
+                            <div
+                              key={index}
+                              className="border border-border rounded-lg p-3 bg-background/50"
+                            >
+                              <div className="font-medium text-foreground">{day.day}</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {day.focus} • {day.duration}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Diet Plan Details */}
+                    <div className="space-y-4 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2 mb-3">
+                        <AppleIcon className="h-5 w-5 text-secondary" />
+                        <h4 className="text-lg font-bold text-foreground">
+                          {program.diet_plan.title}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {program.diet_plan.description}
+                      </p>
+
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="border border-border rounded-lg p-3 bg-background/50 text-center">
+                          <div className="text-xs text-muted-foreground mb-1">Calories</div>
+                          <div className="text-sm font-bold text-primary">
+                            {program.diet_plan.daily_calories}
+                          </div>
+                        </div>
+                        <div className="border border-border rounded-lg p-3 bg-background/50 text-center">
+                          <div className="text-xs text-muted-foreground mb-1">Protein</div>
+                          <div className="text-sm font-bold text-primary">
+                            {program.diet_plan.macros.protein}
+                          </div>
+                        </div>
+                        <div className="border border-border rounded-lg p-3 bg-background/50 text-center">
+                          <div className="text-xs text-muted-foreground mb-1">Carbs</div>
+                          <div className="text-sm font-bold text-primary">
+                            {program.diet_plan.macros.carbs}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-foreground mb-2">
+                          Meal Examples:
+                        </div>
+                        {program.diet_plan.meal_examples.map((meal, index) => (
+                          <div
+                            key={index}
+                            className="border border-border rounded-lg p-3 bg-background/50"
+                          >
+                            <div className="font-medium text-foreground">{meal.meal}</div>
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {meal.example}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Additional User Info */}
+                    <div className="pt-4 border-t border-border">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Height:</span>
+                          <span className="ml-2 text-foreground">{program.height}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Weight:</span>
+                          <span className="ml-2 text-foreground">{program.weight}</span>
+                        </div>
+                        {program.injuries && (
+                          <div>
+                            <span className="text-muted-foreground">Injuries:</span>
+                            <span className="ml-2 text-foreground">{program.injuries}</span>
+                          </div>
+                        )}
+                        {program.dietary_restrictions && (
+                          <div>
+                            <span className="text-muted-foreground">Dietary:</span>
+                            <span className="ml-2 text-foreground">
+                              {program.dietary_restrictions}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardFooter>
             </Card>
           ))}
