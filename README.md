@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OraFit AI - AI-Powered Fitness Assistant
 
-## Getting Started
+A modern, AI-powered fitness platform that creates personalized workout and nutrition programs through voice conversations.
 
-First, run the development server:
+## 🚀 Quick Setup (5 Minutes)
 
+### Step 1: Clone and Install
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-github-repo-url>
+cd orafit
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Step 2: Create Environment File
+```bash
+# Copy the example file
+cp env.example .env.local
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Open .env.local and paste your API keys
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Step 3: Add Your API Keys
+Open `.env.local` and replace the placeholder values with your actual API keys:
 
-## Learn More
+```env
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_actual_key_here
+CLERK_SECRET_KEY=sk_test_your_actual_key_here
+CLERK_WEBHOOK_SECRET=whsec_your_actual_key_here
 
-To learn more about Next.js, take a look at the following resources:
+# Clerk URLs
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Convex Database
+CONVEX_DEPLOYMENT=dev:your-deployment-name
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment-name.convex.cloud
+CONVEX_DEPLOY_KEY=your_actual_deploy_key_here
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Vapi AI Voice Integration
+NEXT_PUBLIC_VAPI_API_KEY=your_actual_vapi_key_here
+NEXT_PUBLIC_VAPI_WORKFLOW_ID=your_actual_workflow_id_here
+```
 
-## Deploy on Vercel
+### Step 4: Start the Application
+```bash
+# Terminal 1: Start the app
+npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Terminal 2: Start the database
+npm run convex:dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Step 5: Open in Browser
+Go to: `http://localhost:3000`
+
+## 🎯 That's It!
+
+Your OraFit AI application is now running! You can:
+- Sign up/Sign in with Google
+- Create personalized fitness programs through voice calls
+- View and manage your programs
+- Browse sample programs from other users
+
+## 🔧 Available Commands
+
+- `npm run dev` - Start development server
+- `npm run convex:dev` - Start database
+- `npm run build` - Build for production
+- `npm run lint` - Check code quality
+
+## 🎤 Vapi Setup (Important!)
+
+After creating your Vapi workflow, you need to configure the AI prompts:
+
+1. Go to [Vapi Dashboard](https://dashboard.vapi.ai)
+2. Open your workflow
+3. Copy the prompts from `src/lib/vapi-prompt.ts`:
+   - **First Message**: Copy text after `//******* FIRST MESSAGE 👇 *******//`
+   - **System Prompt**: Copy text after `//******* SYSTEM PROMPT 👇 *******//`
+4. Paste these into your Vapi workflow configuration
+
+## 🐛 Troubleshooting
+
+### Voice Calls Not Working?
+- Allow microphone permissions in browser
+- Check if Vapi workflow is configured properly
+
+### Authentication Issues?
+- Make sure Google OAuth is enabled in Clerk dashboard
+- Clear browser cache and cookies
+
+### Database Issues?
+- Ensure Convex is running: `npm run convex:dev`
+- Check if environment variables are correct
+
+---
+
+**Built with Next.js, Clerk, Convex, and Vapi AI** 🚀

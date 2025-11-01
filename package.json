@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup": "node scripts/setup.js",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.33.3",
